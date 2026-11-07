@@ -170,11 +170,11 @@
     </div>
     <aside class="cine-nota" hidden>
       <h3>Hazla sin azúcar</h3>
-      <p>Donde el video pone azúcar, usa endulzante de fruta del monje: no amarga ni deja sabor raro.</p>
+      <p>Donde el video pone azúcar, usa <b>Splenda en sobre</b> (el amarillito, de sucralosa). Lo encuentras en cualquier súper, farmacia u OXXO, no amarga y aguanta el agua caliente.</p>
       <ul>
-        <li><b>Lakanto Clásico</b> va 1 a 1: la misma medida que el azúcar.</li>
-        <li><b>Monkiä en sobre</b>: 1 sobre por cada 2 cucharaditas de azúcar.</li>
-        <li>Si lleva <b>leche condensada</b>, usa 1 lata de leche evaporada con 3 cucharadas de Lakanto.</li>
+        <li><b>1 sobre</b> por cada 2 cucharaditas de azúcar.</li>
+        <li><b>1 taza de azúcar</b> = 24 sobres. Si te gusta menos dulce, con 12 a 15 queda rica.</li>
+        <li>Si lleva <b>leche condensada</b>, usa 1 lata de leche evaporada con 10 sobres de Splenda. Prueba y agrega más si la quieres más dulce.</li>
       </ul>
       <p class="cine-nota-medida" hidden></p>
     </aside></div>`;
