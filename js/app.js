@@ -112,24 +112,208 @@
     nome.className = 'video-nome';
     nome.textContent = v.tema;
     b.append(tela, nome);
-    b.addEventListener('click', () => {
-      const f = document.createElement('iframe');
-      f.src = `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&playsinline=1&modestbranding=1`;
-      f.title = v.tema;
-      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-      f.allowFullscreen = true;
-      f.className = 'video-player';
-      const caixa = document.createElement('div');
-      caixa.className = 'video tocando';
-      const t = document.createElement('span');
-      t.className = 'video-tela';
-      t.append(f);
-      caixa.append(t, nome);
-      b.replaceWith(caixa);
-    });
+    b.addEventListener('click', () => abrirCine(v));
     li.append(b);
     return li;
   }
+
+  /* ---------- cine: o vídeo do YouTube fica por baixo de um véu e nenhum botão dele recebe toque.
+     Ela só tem tocar e pausar e tela cheia (os nossos). Mesmo esquema da área do curso de sabonete. ---------- */
+  const ICO = {
+    tocar: '<svg class="i-tocar" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>',
+    pausar: '<svg class="i-pausar" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>',
+    abrir: '<svg class="i-abrir" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    fechar: '<svg class="i-fechar" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    de_novo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  };
+  const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let ytCarga = null;
+  function carregarYT() {
+    if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+    if (!ytCarga) {
+      ytCarga = new Promise((res, rej) => {
+        const antes = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => { if (typeof antes === 'function') antes(); res(window.YT); };
+        const s = document.createElement('script');
+        s.src = 'https://www.youtube.com/iframe_api';
+        s.async = true;
+        s.onerror = () => { ytCarga = null; rej(new Error('yt')); };
+        document.head.append(s);
+        setTimeout(() => rej(new Error('yt demorou')), 12000);
+      });
+    }
+    return ytCarga;
+  }
+
+  const C = { yt: null, v: null, tOcioso: 0, tInicio: 0, foco: null };
+  const cine = document.createElement('div');
+  cine.className = 'cine';
+  cine.hidden = true;
+  cine.setAttribute('role', 'dialog');
+  cine.setAttribute('aria-modal', 'true');
+  cine.setAttribute('aria-labelledby', 'cineTitulo');
+  cine.innerHTML = `<div class="cine-barra">
+      <button class="icono cine-volver" type="button" aria-label="Volver"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <h2 id="cineTitulo" class="cine-titulo"></h2>
+    </div>
+    <div class="cine-palco"><div class="tela" data-estado="carregando">
+      <div class="tela-alvo"></div>
+      <div class="tela-veu" data-tela="veu"></div>
+      <button class="tela-centro" type="button" data-tela="tocar" aria-label="Reproducir o pausar">${ICO.tocar}${ICO.pausar}</button>
+      <div class="tela-fim"><button class="tela-de-novo" type="button" data-tela="de-novo">${ICO.de_novo}<span>Ver otra vez</span></button></div>
+      <div class="tela-barra">
+        <button class="tela-btn" type="button" data-tela="tocar" aria-label="Reproducir o pausar">${ICO.tocar}${ICO.pausar}</button>
+        <span class="tela-espaco"></span>
+        <button class="tela-btn" type="button" data-tela="cheia" aria-label="Pantalla completa">${ICO.abrir}${ICO.fechar}</button>
+      </div>
+      <div class="tela-aviso" aria-live="polite"></div>
+    </div></div>`;
+  document.body.append(cine);
+  const tela = cine.querySelector('.tela');
+  const avisoTela = (t) => {
+    const a = tela.querySelector('.tela-aviso');
+    a.textContent = t;
+    a.classList.add('visivel');
+    clearTimeout(a._t);
+    a._t = setTimeout(() => a.classList.remove('visivel'), 1800);
+  };
+  const estadoTela = (e) => { tela.dataset.estado = e; };
+  function acordarTela(ms = 2600) {
+    tela.removeAttribute('data-ocioso');
+    clearTimeout(C.tOcioso);
+    C.tOcioso = setTimeout(() => { if (tela.dataset.estado === 'tocando') tela.setAttribute('data-ocioso', ''); }, ms);
+  }
+  // o iframe fica inerte; só fica livre no celular que exige o primeiro toque no próprio vídeo (iPhone)
+  function videoLivre(livre) {
+    tela.toggleAttribute('data-livre', livre);
+    const f = tela.querySelector('iframe');
+    if (f) { f.tabIndex = -1; f.inert = !livre; }
+  }
+  function conferirInicio() {
+    clearTimeout(C.tInicio);
+    C.tInicio = setTimeout(() => {
+      const yt = C.yt;
+      if (!yt || !yt.getPlayerState) return;
+      const st = yt.getPlayerState();
+      if (st !== 1 && st !== 3) { videoLivre(true); avisoTela('Toca el video para empezar'); }
+    }, 1600);
+  }
+  function aoMudarEstado(ev) {
+    const S = window.YT.PlayerState;
+    if (ev.data === S.PLAYING) { clearTimeout(C.tInicio); videoLivre(false); estadoTela('tocando'); acordarTela(4500); }
+    else if (ev.data === S.BUFFERING) estadoTela('carregando');
+    else if (ev.data === S.ENDED) { estadoTela('fim'); tela.removeAttribute('data-ocioso'); }
+    else { estadoTela('pausado'); acordarTela(); }
+  }
+  const cheiaAgora = () => document.fullscreenElement || document.webkitFullscreenElement || tela.classList.contains('tela-cheia');
+  function alternarCheia() {
+    if (cheiaAgora()) { sairDaCheia(); return; }
+    const pedir = tela.requestFullscreen || tela.webkitRequestFullscreen;
+    const reserva = () => { tela.classList.add('tela-cheia'); marcarCheia(); };
+    if (!pedir) { reserva(); return; }
+    try {
+      Promise.resolve(pedir.call(tela))
+        .then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch { /* sem giro */ } })
+        .catch(reserva);
+    } catch { reserva(); }
+  }
+  function sairDaCheia() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch { /* já saiu */ }
+    }
+    tela.classList.remove('tela-cheia');
+    try { screen.orientation.unlock(); } catch { /* nada */ }
+    marcarCheia();
+  }
+  function marcarCheia() {
+    const on = Boolean(cheiaAgora());
+    tela.toggleAttribute('data-cheia', on);
+    tela.querySelector('[data-tela="cheia"]').setAttribute('aria-label', on ? 'Salir de pantalla completa' : 'Pantalla completa');
+  }
+  document.addEventListener('fullscreenchange', marcarCheia);
+  document.addEventListener('webkitfullscreenchange', marcarCheia);
+
+  tela.addEventListener('pointerdown', (e) => { tela._toque = e.pointerType === 'touch'; }, { passive: true });
+  tela.addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') acordarTela(); }, { passive: true });
+  tela.addEventListener('dblclick', (e) => { if (!tela._toque && e.target.closest('[data-tela="veu"]')) alternarCheia(); });
+  tela.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tela]');
+    if (!b) return;
+    const acao = b.dataset.tela;
+    const yt = C.yt;
+    // no celular, com o vídeo tocando, tocar no vídeo só mostra ou esconde os botões (como no app do YouTube)
+    if (acao === 'veu' && tela._toque && tela.dataset.estado === 'tocando') {
+      if (tela.hasAttribute('data-ocioso')) acordarTela(); else { clearTimeout(C.tOcioso); tela.setAttribute('data-ocioso', ''); }
+      return;
+    }
+    if (acao === 'veu' && tela.dataset.estado === 'fim') return;
+    acordarTela();
+    if (acao === 'cheia') { alternarCheia(); return; }
+    if (!yt || !yt.getPlayerState) return;
+    if (acao === 'de-novo') { yt.seekTo(0, true); yt.playVideo(); return; }
+    const st = yt.getPlayerState();
+    if (st === 1 || st === 3) yt.pauseVideo(); else { yt.playVideo(); conferirInicio(); }
+  });
+
+  // a legenda automática do YouTube vem na língua do navegador (português aqui no PC): desliga
+  function semLegenda(yt) { try { yt.unloadModule('captions'); yt.unloadModule('cc'); } catch { /* sem legenda */ } }
+  // nada rola dentro da moldura (o foco no iframe empurrava o vídeo pra cima)
+  tela.addEventListener('scroll', () => { tela.scrollTop = 0; tela.scrollLeft = 0; });
+
+  async function abrirCine(v) {
+    C.foco = document.activeElement;
+    C.v = v;
+    cine.querySelector('#cineTitulo').textContent = v.tema;
+    cine.hidden = false;
+    document.body.style.overflow = 'hidden';
+    $('pagina').inert = true;
+    history.pushState({ cine: v.id }, '');
+    cine.querySelector('.cine-volver').focus();
+    estadoTela('carregando');
+    tela.removeAttribute('data-ocioso');
+    try {
+      const YT = await carregarYT();
+      if (C.v !== v) return;
+      tela.querySelector('.tela-alvo').replaceChildren(Object.assign(document.createElement('div'), { id: 'ytAlvo' }));
+      C.yt = new YT.Player('ytAlvo', {
+        host: 'https://www.youtube-nocookie.com',
+        videoId: v.id,
+        width: '100%',
+        height: '100%',
+        // sem os controles do YouTube, sem atalhos de teclado, sem o botão de tela cheia dele e sem anotações
+        playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, iv_load_policy: 3, cc_load_policy: 0, hl: 'es', playsinline: 1, origin: location.origin },
+        events: {
+          onReady: (e) => { semLegenda(e.target); videoLivre(false); conferirInicio(); },
+          onStateChange: (ev) => { if (ev.data === 1) semLegenda(ev.target); aoMudarEstado(ev); },
+        },
+      });
+      videoLivre(false);
+    } catch {
+      if (C.v === v) avisoTela('No se pudo cargar el video. Revisa tu internet.');
+    }
+  }
+  function fecharCine(semHistorico) {
+    if (cine.hidden) return;
+    clearTimeout(C.tInicio);
+    clearTimeout(C.tOcioso);
+    sairDaCheia();
+    if (C.yt) { try { C.yt.destroy(); } catch { /* já foi */ } }
+    C.yt = null;
+    C.v = null;
+    tela.querySelector('.tela-alvo').replaceChildren();
+    cine.hidden = true;
+    document.body.style.overflow = '';
+    $('pagina').inert = false;
+    if (C.foco && C.foco.isConnected) C.foco.focus({ preventScroll: true });
+    if (!semHistorico) history.back();
+  }
+  cine.querySelector('.cine-volver').addEventListener('click', () => fecharCine(false));
+  window.addEventListener('popstate', () => fecharCine(true));
+  document.addEventListener('keydown', (e) => {
+    if (cine.hidden) return;
+    if (e.key === 'Escape') { if (cheiaAgora()) sairDaCheia(); else fecharCine(false); }
+    else if (e.key === ' ' && e.target === document.body) { e.preventDefault(); tela.querySelector('.tela-centro').click(); }
+  });
 
   function estanteVideos(lista) {
     if (!lista || !lista.length) return null;

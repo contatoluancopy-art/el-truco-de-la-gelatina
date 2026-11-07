@@ -127,8 +127,55 @@ a.icono:not([href]) { opacity: .35; pointer-events: none; }
 .video-play { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 48px; height: 48px; padding-left: 3px; color: #fff; background: var(--jamaica); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 6px 16px -4px rgba(30,15,8,.6); transition: transform .2s var(--saida); }
 .video-dur { position: absolute; right: 7px; bottom: 7px; padding: 1px 7px; font-size: .75rem; font-weight: 600; color: #fff; background: rgba(30,15,8,.78); border-radius: 6px; font-variant-numeric: tabular-nums; }
 .video-nome { display: block; margin-top: 8px; font-weight: 600; font-size: .9375rem; line-height: 1.3; }
-.video-player { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .video:active .video-play { transform: translate(-50%, -50%) scale(.92); }
 @media (hover: hover) { .video:hover .video-tela img { transform: scale(1.04); } .video:hover .video-play { transform: translate(-50%, -50%) scale(1.08); } }
 @media (min-width: 760px) { .videos { grid-auto-columns: 240px; } }
 @media (prefers-reduced-motion: reduce) { .video-tela img, .video-play { transition: none; } }
+
+/* cine: o player do YouTube por baixo de um véu; ela só tem tocar e pausar e tela cheia (mesmo esquema do curso de sabonete) */
+.cine { position: fixed; inset: 0; z-index: 25; display: flex; flex-direction: column; background: #120c09; animation: subir .34s var(--saida); }
+.cine[hidden] { display: none; }
+.cine-barra { flex: none; display: flex; align-items: center; gap: 6px; padding: calc(6px + var(--seg-top)) 12px 6px 6px; color: #fff; }
+.cine-barra .icono { color: #fff; }
+@media (hover: hover) { .cine-barra .icono:hover { background: rgba(255,255,255,.12); } }
+.cine-titulo { min-width: 0; font-size: 1.0625rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cine-palco { flex: 1; display: grid; place-items: center; padding: 0 0 calc(16px + var(--seg-bot)); }
+.cine .tela { position: relative; width: min(100%, 960px, calc((100dvh - 90px) * 16 / 9)); aspect-ratio: 16 / 9; }
+.tela { background: #000; overflow: hidden; overflow: clip; container-type: size; -webkit-user-select: none; user-select: none; }
+/* o iframe passa 90 px da moldura em cima e embaixo: o título, o canal e o "Ver en YouTube" ficam pra fora */
+.tela-alvo, .tela-alvo > * { position: absolute; inset: 0; }
+.tela iframe { position: absolute; left: 0; right: 0; top: -90px; margin: 0 auto; width: 100%; width: min(100%, calc(100cqh * 16 / 9)); height: calc(100% + 180px); border: 0; pointer-events: none; }
+.tela[data-livre] iframe { pointer-events: auto; }
+.tela-veu { position: absolute; inset: 0; z-index: 1; cursor: pointer; transition: background-color .25s ease; }
+.tela[data-livre] .tela-veu, .tela[data-livre] .tela-centro, .tela[data-livre] .tela-barra { display: none; }
+/* pausado ou carregando, o véu cobre o que o YouTube mostraria por cima; no fim (sugestões de outros vídeos) fica opaco */
+.tela[data-estado='pausado'] .tela-veu, .tela[data-estado='carregando'] .tela-veu { background: rgba(18,12,9,.72); }
+.tela[data-estado='fim'] .tela-veu { background: #120c09; cursor: default; }
+.tela-centro { position: absolute; left: 50%; top: 50%; z-index: 2; display: grid; place-items: center; width: 68px; height: 68px; margin: -34px 0 0 -34px; padding: 0; color: #fff; background: var(--jamaica); border: 0; border-radius: 50%; box-shadow: 0 8px 22px -6px rgba(0,0,0,.6); opacity: 0; pointer-events: none; cursor: pointer; transition: opacity .2s ease, transform .16s var(--saida); }
+.tela-centro svg { width: 30px; height: 30px; }
+.tela-centro .i-tocar { margin-left: 4px; }
+.tela-centro:active { transform: scale(.94); }
+.tela[data-estado='pausado'] .tela-centro, .tela[data-estado='carregando'] .tela-centro, .tela[data-estado='tocando']:not([data-ocioso]) .tela-centro { opacity: 1; pointer-events: auto; }
+.tela-fim { position: absolute; inset: 0; z-index: 2; display: none; place-items: center; }
+.tela[data-estado='fim'] .tela-fim { display: grid; }
+.tela-de-novo { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; font: 600 1rem 'Figtree', system-ui, sans-serif; color: #fff; background: var(--jamaica); border: 0; border-radius: 99px; cursor: pointer; }
+.tela-de-novo svg { width: 20px; height: 20px; }
+.tela-barra { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; align-items: center; padding: 26px 6px 4px; background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,0)); transition: opacity .25s ease; }
+.tela[data-ocioso] .tela-barra, .tela[data-estado='fim'] .tela-barra { opacity: 0; pointer-events: none; }
+.tela[data-ocioso] .tela-veu { cursor: none; }
+.tela-espaco { flex: 1; }
+.tela-btn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; color: #fff; background: none; border: 0; border-radius: 50%; cursor: pointer; transition: transform .16s var(--saida), background-color .2s ease; }
+.tela-btn svg { width: 24px; height: 24px; }
+.tela-btn:active { transform: scale(.92); }
+@media (hover: hover) { .tela-btn:hover { background: rgba(255,255,255,.14); } }
+.i-pausar, .i-fechar { display: none; }
+.tela[data-estado='tocando'] .i-tocar, .tela[data-estado='carregando'] .i-tocar { display: none; }
+.tela[data-estado='tocando'] .i-pausar, .tela[data-estado='carregando'] .i-pausar { display: block; }
+.tela[data-cheia] .i-abrir { display: none; }
+.tela[data-cheia] .i-fechar { display: block; }
+.tela-aviso { position: absolute; left: 50%; top: 14px; z-index: 4; transform: translateX(-50%); padding: 6px 12px; font-size: .8125rem; font-weight: 700; color: #fff; white-space: nowrap; background: rgba(18,12,9,.85); border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.tela-aviso.visivel { opacity: 1; }
+.tela.tela-cheia { position: fixed; inset: 0; z-index: 200; width: auto; aspect-ratio: auto; }
+.tela:fullscreen { width: 100%; aspect-ratio: auto; }
+.tela:fullscreen .tela-barra, .tela.tela-cheia .tela-barra { padding: 30px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); }
+@media (prefers-reduced-motion: reduce) { .cine { animation: none; } }
