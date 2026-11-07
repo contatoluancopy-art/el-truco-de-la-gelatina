@@ -139,8 +139,9 @@ a.icono:not([href]) { opacity: .35; pointer-events: none; }
 .cine-barra .icono { color: #fff; }
 @media (hover: hover) { .cine-barra .icono:hover { background: rgba(255,255,255,.12); } }
 .cine-titulo { min-width: 0; font-size: 1.0625rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cine-palco { flex: 1; display: grid; place-items: center; padding: 0 0 calc(16px + var(--seg-bot)); }
-.cine .tela { position: relative; width: min(100%, 960px, calc((100dvh - 90px) * 16 / 9)); aspect-ratio: 16 / 9; }
+.cine-palco { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 0 0 calc(16px + var(--seg-bot)); overflow-y: auto; overscroll-behavior: contain; }
+.cine .tela { position: relative; flex: none; width: min(100%, 960px, calc((100dvh - 90px) * 16 / 9)); aspect-ratio: 16 / 9; }
+.cine:has(.cine-nota:not([hidden])) .tela { width: min(100%, 960px, calc((100dvh - 290px) * 16 / 9)); }
 .tela { background: #000; overflow: hidden; overflow: clip; container-type: size; -webkit-user-select: none; user-select: none; }
 /* o iframe passa 90 px da moldura em cima e embaixo: o título, o canal e o "Ver en YouTube" ficam pra fora */
 .tela-alvo, .tela-alvo > * { position: absolute; inset: 0; }
@@ -179,3 +180,16 @@ a.icono:not([href]) { opacity: .35; pointer-events: none; }
 .tela:fullscreen { width: 100%; aspect-ratio: auto; }
 .tela:fullscreen .tela-barra, .tela.tela-cheia .tela-barra { padding: 30px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); }
 @media (prefers-reduced-motion: reduce) { .cine { animation: none; } }
+
+/* nota do adoçante embaixo do vídeo que leva açúcar */
+.cine-nota { flex: none; width: min(calc(100% - 32px), 640px); padding: 16px 18px; color: var(--tinta); background: var(--papel); border-radius: 14px; }
+.cine-nota[hidden] { display: none; }
+.cine-nota h3 { font-size: 1.0625rem; color: var(--jamaica); }
+.cine-nota p { margin-top: 4px; font-size: .9375rem; }
+.cine-nota ul { margin: 8px 0 0; padding-left: 1.1em; font-size: .9375rem; }
+.cine-nota li + li { margin-top: 3px; }
+.cine-nota-medida { margin-top: 10px !important; padding: 8px 12px; font-weight: 600; background: #fdeec6; border-radius: 8px; }
+/* leitura só no site: nada de selecionar, arrastar ou imprimir o material */
+#leitor, .cine { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#leitor canvas { pointer-events: none; }
+@media print { body * { display: none !important; } body::after { content: 'Este material se ve solo en la página.'; display: block; padding: 40px; font: 600 18px sans-serif; } }

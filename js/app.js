@@ -167,7 +167,17 @@
         <button class="tela-btn" type="button" data-tela="cheia" aria-label="Pantalla completa">${ICO.abrir}${ICO.fechar}</button>
       </div>
       <div class="tela-aviso" aria-live="polite"></div>
-    </div></div>`;
+    </div>
+    <aside class="cine-nota" hidden>
+      <h3>Hazla sin azúcar</h3>
+      <p>Donde el video pone azúcar, usa endulzante de fruta del monje: no amarga ni deja sabor raro.</p>
+      <ul>
+        <li><b>Lakanto Clásico</b> va 1 a 1: la misma medida que el azúcar.</li>
+        <li><b>Monkiä en sobre</b>: 1 sobre por cada 2 cucharaditas de azúcar.</li>
+        <li>Si lleva <b>leche condensada</b>, usa 1 lata de leche evaporada con 3 cucharadas de Lakanto.</li>
+      </ul>
+      <p class="cine-nota-medida" hidden></p>
+    </aside></div>`;
   document.body.append(cine);
   const tela = cine.querySelector('.tela');
   const avisoTela = (t) => {
@@ -264,6 +274,11 @@
     C.foco = document.activeElement;
     C.v = v;
     cine.querySelector('#cineTitulo').textContent = v.tema;
+    const nota = cine.querySelector('.cine-nota');
+    nota.hidden = !v.az;
+    const medida = nota.querySelector('.cine-nota-medida');
+    medida.hidden = typeof v.az !== 'string';
+    medida.textContent = typeof v.az === 'string' ? v.az : '';
     cine.hidden = false;
     document.body.style.overflow = 'hidden';
     $('pagina').inert = true;
@@ -462,14 +477,8 @@
   const planos = new Map();
   async function baixarPdf(m) {
     if (planos.has(m.id)) return planos.get(m.id);
-    if (m.gratis) {
-      const r = await fetch(`gratis/${m.id}.pdf`);
-      if (!r.ok) throw new Error('rede');
-      const livre = await r.arrayBuffer();
-      planos.set(m.id, livre);
-      return livre;
-    }
-    const reg = acesso.archivos[m.id];
+    // tudo vem cifrado de conteudo/ (o grátis com a chave pública de D.livres): não existe PDF solto pra baixar
+    const reg = m.gratis ? D.livres[m.id] : acesso.archivos[m.id];
     const resp = await fetch(`conteudo/${reg.arq}`);
     if (!resp.ok) throw new Error('rede');
     const buf = new Uint8Array(await resp.arrayBuffer());
@@ -479,7 +488,7 @@
     return plano;
   }
 
-  let L = null; // leitor aberto: { m, doc, obs, urlBaixar, render:Set }
+  let L = null; // leitor aberto: { m, doc, obs, render:Set }
   let voltarFoco = null;
 
   function estadoLeitor(texto, tentar) {
@@ -502,7 +511,6 @@
     $('pagina').inert = true;
     $('leitorTitulo').textContent = m.titulo;
     $('leitorPagina').textContent = `${plural(m.paginas, 'página', 'páginas')} · ${String(m.mb).replace('.', ',')} MB`;
-    $('leitorBajar').removeAttribute('href');
     history.pushState({ leitor: m.id }, '');
     $('leitorVolver').focus();
     const atual = (L = { m, render: new Set() });
@@ -511,10 +519,6 @@
       try {
         const [pdfjs, plano] = await Promise.all([carregarPdfjs(), baixarPdf(m)]);
         if (L !== atual) return;
-        atual.urlBaixar = URL.createObjectURL(new Blob([plano], { type: 'application/pdf' }));
-        const bajar = $('leitorBajar');
-        bajar.href = atual.urlBaixar;
-        bajar.download = m.titulo.replace(/[^\p{L}\p{N} ]/gu, '') + '.pdf';
         atual.doc = await pdfjs.getDocument({ data: new Uint8Array(plano.slice(0)) }).promise;
         if (L !== atual) return;
         estadoLeitor('');
@@ -598,7 +602,6 @@
     if (L) {
       if (L.obs) L.obs.disconnect();
       if (L.doc) L.doc.destroy();
-      if (L.urlBaixar) URL.revokeObjectURL(L.urlBaixar);
       L = null;
     }
     $('leitorArea').replaceChildren();
@@ -613,6 +616,14 @@
   $('leitorVolver').addEventListener('click', () => fecharLeitor(false));
   window.addEventListener('popstate', () => { if (!$('leitor').hidden) fecharLeitor(true); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('leitor').hidden) fecharLeitor(false); });
+
+  /* ---------- só no site: o material não se baixa nem se imprime ---------- */
+  // segurar o dedo ou o botão direito nas páginas e nos vídeos não abre "salvar imagem"
+  document.addEventListener('contextmenu', (e) => { if (e.target.closest('#leitor, .cine, .livro, .video')) e.preventDefault(); });
+  document.addEventListener('dragstart', (e) => { if (e.target.closest('#leitor, .cine')) e.preventDefault(); });
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && ['s', 'p'].includes(e.key.toLowerCase())) { e.preventDefault(); avisar('Tu material se ve aquí mismo, en esta página.'); }
+  });
 
   /* ---------- início: quem já entrou neste celular volta direto ---------- */
   (async () => {
