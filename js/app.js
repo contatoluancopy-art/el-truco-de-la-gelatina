@@ -105,7 +105,11 @@
         caixa.append(estante(`Vienen en el ${KIT[n]}`, `${plural(faltan.length, 'material más', 'materiales más')}. Si los quieres, avísame por WhatsApp y te digo cómo completar tu aportación.`, faltan, 0));
       }
     } else {
-      caixa.append(estante('Material prometido', 'Tu receta completa. Ábrela y guárdala, no necesitas clave.', D.catalogo.filter((m) => m.gratis), 0));
+      caixa.append(estante('Material prometido', 'Te entregué tu receta antes de tu pago, confiando en ti, como acordamos. Ahora falta tu parte: elige uno de los kits de abajo y haz tu pago para abrirlo.', D.catalogo.filter((m) => m.gratis), 0));
+      const elige = document.createElement('h2');
+      elige.className = 'elige';
+      elige.textContent = 'Elige tu kit';
+      caixa.append(elige);
       caixa.append(estante(`${KIT[1]} · $119`, 'Tu receta, estos 2 bonos y un secreto al día por 30 días', de(1).filter((m) => !m.gratis), 0));
       caixa.append(estante(`${KIT[2]} · $179`, `Todo el ${KIT[1]} y ${plural(de(2).length, 'material', 'materiales')} más`, de(2), 0));
       caixa.append(estante(`${KIT[3]} · $239`, `Todo el ${KIT[2]} y ${plural(de(3).length, 'material', 'materiales')} más`, de(3), 0));
