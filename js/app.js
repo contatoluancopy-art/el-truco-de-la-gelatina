@@ -93,7 +93,7 @@
     $('formClave').hidden = Boolean(acesso);
     $('saludo').hidden = !acesso;
     $('salirFila').hidden = !acesso;
-    $('portadaLinea').textContent = acesso ? 'Toca una portada para empezar a leer.' : 'Tu receta gratis y tus kits.';
+    $('portadaLinea').textContent = acesso ? 'Toca una portada para empezar a leer.' : 'Tu material prometido y tus kits.';
 
     if (acesso) {
       $('saludoTitulo').textContent = `Tu ${KIT[nivel]}: ${plural(meus.length, 'material', 'materiales')}`;
@@ -105,7 +105,7 @@
         caixa.append(estante(`Vienen en el ${KIT[n]}`, `${plural(faltan.length, 'material más', 'materiales más')}. Si los quieres, avísame por WhatsApp y te digo cómo completar tu aportación.`, faltan, 0));
       }
     } else {
-      caixa.append(estante('Tu receta gratis', 'Ábrela y guárdala. No necesitas clave.', D.catalogo.filter((m) => m.gratis), 0));
+      caixa.append(estante('Material prometido', 'Tu receta completa. Ábrela y guárdala, no necesitas clave.', D.catalogo.filter((m) => m.gratis), 0));
       caixa.append(estante(`${KIT[1]} · $119`, 'Tu receta, estos 2 bonos y un secreto al día por 30 días', de(1).filter((m) => !m.gratis), 0));
       caixa.append(estante(`${KIT[2]} · $179`, `Todo el ${KIT[1]} y ${plural(de(2).length, 'material', 'materiales')} más`, de(2), 0));
       caixa.append(estante(`${KIT[3]} · $239`, `Todo el ${KIT[2]} y ${plural(de(3).length, 'material', 'materiales')} más`, de(3), 0));
