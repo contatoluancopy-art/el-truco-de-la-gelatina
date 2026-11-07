@@ -358,8 +358,9 @@
     // link grátis do WhatsApp: abre a receita direto, sem clave
     if (location.hash === '#receta') {
       history.replaceState(null, '', location.pathname + location.search);
-      const receta = D.catalogo.find((m) => m.gratis);
-      if (receta) abrirLeitor(receta);
+      // cai na seção Material prometido, com os kits logo abaixo, em vez de abrir o PDF direto
+      const secao = document.querySelector('#estantes .estante');
+      if (secao) requestAnimationFrame(() => secao.scrollIntoView({ block: 'start' }));
     }
     // link da entrega: a clave vem depois do #, que não vai pro servidor, e sai da barra de endereço na hora
     const doLink = new URLSearchParams(location.hash.slice(1)).get('clave');
