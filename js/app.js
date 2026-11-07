@@ -82,6 +82,80 @@
     return s;
   }
 
+  /* ---------- vídeos: miniatura leve; o player do YouTube só carrega no toque ---------- */
+  const ORDEM_FILEIRA = ['Técnicas', 'Gelatinas sin azúcar', 'Gelatinas cremosas', 'Gelatinas de fruta', 'Gelatinas de colores', 'Gelatinas con proteína', 'Reto de 30 días', 'Aguas y comidas ligeras', 'Chía'];
+  const NOME_FILEIRA = { 'Técnicas': 'Lo básico: preparar, cuajar y desmoldar', 'Reto de 30 días': 'Gelatinas del reto de 30 días', 'Chía': 'Con chía' };
+  const qtdVideos = (n) => (D.videosPorNivel && D.videosPorNivel[n]) || 0;
+  const minutos = (m) => (m < 1 ? `${Math.round(m * 60)} s` : `${Math.round(m)} min`);
+
+  function cartaoVideo(v) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'video';
+    b.setAttribute('aria-label', `Ver video: ${v.tema}`);
+    const tela = document.createElement('span');
+    tela.className = 'video-tela';
+    const img = document.createElement('img');
+    img.src = `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`;
+    img.alt = '';
+    img.loading = 'lazy';
+    img.width = 320; img.height = 180;
+    const play = document.createElement('span');
+    play.className = 'video-play';
+    play.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>';
+    const dur = document.createElement('span');
+    dur.className = 'video-dur';
+    dur.textContent = minutos(v.min);
+    tela.append(img, play, dur);
+    const nome = document.createElement('span');
+    nome.className = 'video-nome';
+    nome.textContent = v.tema;
+    b.append(tela, nome);
+    b.addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.src = `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&playsinline=1&modestbranding=1`;
+      f.title = v.tema;
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      f.allowFullscreen = true;
+      f.className = 'video-player';
+      const caixa = document.createElement('div');
+      caixa.className = 'video tocando';
+      const t = document.createElement('span');
+      t.className = 'video-tela';
+      t.append(f);
+      caixa.append(t, nome);
+      b.replaceWith(caixa);
+    });
+    li.append(b);
+    return li;
+  }
+
+  function estanteVideos(lista) {
+    if (!lista || !lista.length) return null;
+    const s = document.createElement('section');
+    s.className = 'estante estante-videos';
+    const cab = document.createElement('div');
+    cab.className = 'estante-cabeca';
+    const h = document.createElement('h2');
+    h.textContent = `Tus videos (${lista.length})`;
+    const p = document.createElement('p');
+    p.textContent = 'Recetas paso a paso para ver mientras cocinas. Toca uno y se reproduce aquí mismo.';
+    cab.append(h, p);
+    s.append(cab);
+    const grupos = ORDEM_FILEIRA.map((f) => [f, lista.filter((v) => v.fileira === f)]).filter(([, l]) => l.length);
+    for (const [f, l] of grupos) {
+      const h3 = document.createElement('h3');
+      h3.className = 'fileira-nome';
+      h3.textContent = NOME_FILEIRA[f] || f;
+      const ul = document.createElement('ul');
+      ul.className = 'videos';
+      l.forEach((v) => ul.append(cartaoVideo(v)));
+      s.append(h3, ul);
+    }
+    return s;
+  }
+
   function desenhar(animar) {
     const caixa = $('estantes');
     caixa.replaceChildren();
@@ -99,10 +173,13 @@
       $('saludoTitulo').textContent = `Tu ${KIT[nivel]}: ${plural(meus.length, 'material', 'materiales')}`;
       $('saludoTexto').textContent = 'Toca una portada para abrirla. Tu secreto de cada día te llega por WhatsApp.';
       caixa.append(estante('Tus materiales', '', meus, 0));
+      const vids = estanteVideos(acesso.videos);
+      if (vids) caixa.append(vids);
       for (const n of [2, 3]) {
         if (n <= nivel) continue;
         const faltan = de(n);
-        caixa.append(estante(`Vienen en el ${KIT[n]}`, `${plural(faltan.length, 'material más', 'materiales más')}. Si los quieres, avísame por WhatsApp y te digo cómo completar tu aportación.`, faltan, 0));
+        const extraVid = qtdVideos(n) ? ` y ${plural(qtdVideos(n), 'video', 'videos')}` : '';
+        caixa.append(estante(`Vienen en el ${KIT[n]}`, `${plural(faltan.length, 'material más', 'materiales más')}${extraVid}. Si los quieres, avísame por WhatsApp y te digo cómo completar tu aportación.`, faltan, 0));
       }
     } else {
       caixa.append(estante('Material prometido', 'Te entregué tu receta antes de tu pago, confiando en ti, como acordamos. Ahora falta tu parte: elige uno de los kits de abajo y haz tu pago para abrirlo.', D.catalogo.filter((m) => m.gratis), 0));
@@ -110,9 +187,10 @@
       elige.className = 'elige';
       elige.textContent = 'Elige tu kit';
       caixa.append(elige);
-      caixa.append(estante(`${KIT[1]} · $119`, 'Tu receta, estos 2 bonos y un secreto al día por 30 días', de(1).filter((m) => !m.gratis), 0));
-      caixa.append(estante(`${KIT[2]} · $179`, `Todo el ${KIT[1]} y ${plural(de(2).length, 'material', 'materiales')} más`, de(2), 0));
-      caixa.append(estante(`${KIT[3]} · $239`, `Todo el ${KIT[2]} y ${plural(de(3).length, 'material', 'materiales')} más`, de(3), 0));
+      const vid = (n) => (qtdVideos(n) ? `, ${plural(qtdVideos(n), 'video', 'videos')} paso a paso` : '');
+      caixa.append(estante(`${KIT[1]} · $119`, `Tu receta, estos 2 bonos${vid(1)} y un secreto al día por 30 días`, de(1).filter((m) => !m.gratis), 0));
+      caixa.append(estante(`${KIT[2]} · $179`, `Todo el ${KIT[1]}, ${plural(de(2).length, 'material', 'materiales')} más${vid(2)}`, de(2), 0));
+      caixa.append(estante(`${KIT[3]} · $239`, `Todo el ${KIT[2]}, ${plural(de(3).length, 'material', 'materiales')} más${vid(3)}`, de(3), 0));
     }
   }
 
