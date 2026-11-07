@@ -34,7 +34,7 @@
 
   function cartao(m, i) {
     const li = document.createElement('li');
-    const aberto = acesso && acesso.archivos[m.id];
+    const aberto = m.gratis || (acesso && acesso.archivos[m.id]);
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'livro' + (aberto ? '' : ' fechado');
@@ -93,7 +93,7 @@
     $('formClave').hidden = Boolean(acesso);
     $('saludo').hidden = !acesso;
     $('salirFila').hidden = !acesso;
-    $('portadaLinea').textContent = acesso ? 'Toca una portada para empezar a leer.' : 'Aquí están tus recetas y tus bonos.';
+    $('portadaLinea').textContent = acesso ? 'Toca una portada para empezar a leer.' : 'Tu receta gratis y tus kits.';
 
     if (acesso) {
       $('saludoTitulo').textContent = `Tu ${KIT[nivel]}: ${plural(meus.length, 'material', 'materiales')}`;
@@ -105,7 +105,8 @@
         caixa.append(estante(`Vienen en el ${KIT[n]}`, `${plural(faltan.length, 'material más', 'materiales más')}. Si los quieres, avísame por WhatsApp y te digo cómo completar tu aportación.`, faltan, 0));
       }
     } else {
-      caixa.append(estante(`${KIT[1]} · $119`, plural(de(1).length, 'material', 'materiales'), de(1), 0));
+      caixa.append(estante('Tu receta gratis', 'Ábrela y guárdala. No necesitas clave.', D.catalogo.filter((m) => m.gratis), 0));
+      caixa.append(estante(`${KIT[1]} · $119`, 'Tu receta, estos 2 bonos y un secreto al día por 30 días', de(1).filter((m) => !m.gratis), 0));
       caixa.append(estante(`${KIT[2]} · $179`, `Todo el ${KIT[1]} y ${plural(de(2).length, 'material', 'materiales')} más`, de(2), 0));
       caixa.append(estante(`${KIT[3]} · $239`, `Todo el ${KIT[2]} y ${plural(de(3).length, 'material', 'materiales')} más`, de(3), 0));
     }
@@ -195,6 +196,13 @@
   const planos = new Map();
   async function baixarPdf(m) {
     if (planos.has(m.id)) return planos.get(m.id);
+    if (m.gratis) {
+      const r = await fetch(`gratis/${m.id}.pdf`);
+      if (!r.ok) throw new Error('rede');
+      const livre = await r.arrayBuffer();
+      planos.set(m.id, livre);
+      return livre;
+    }
     const reg = acesso.archivos[m.id];
     const resp = await fetch(`conteudo/${reg.arq}`);
     if (!resp.ok) throw new Error('rede');
@@ -343,6 +351,12 @@
   /* ---------- início: quem já entrou neste celular volta direto ---------- */
   (async () => {
     desenhar(false);
+    // link grátis do WhatsApp: abre a receita direto, sem clave
+    if (location.hash === '#receta') {
+      history.replaceState(null, '', location.pathname + location.search);
+      const receta = D.catalogo.find((m) => m.gratis);
+      if (receta) abrirLeitor(receta);
+    }
     // link da entrega: a clave vem depois do #, que não vai pro servidor, e sai da barra de endereço na hora
     const doLink = new URLSearchParams(location.hash.slice(1)).get('clave');
     if (doLink) {
