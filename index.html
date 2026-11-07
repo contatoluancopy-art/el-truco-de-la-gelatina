@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fbf5ec">
+<meta name="robots" content="noindex">
+<title>El Truco de la Gelatina · Tus materiales</title>
+<link rel="icon" href="img/icono.png">
+<link rel="apple-touch-icon" href="img/icono.png">
+<link rel="preload" as="image" href="img/hero.webp">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-candado" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-atras" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bajar" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div id="pagina">
+  <header class="portada">
+    <img src="img/hero.webp" alt="" width="1600" height="1600">
+    <div class="portada-texto">
+      <h1>El Truco de la Gelatina</h1>
+      <p id="portadaLinea">Aquí están tus recetas y tus bonos.</p>
+    </div>
+  </header>
+
+  <main>
+    <form id="formClave" class="clave" autocomplete="off" novalidate>
+      <label for="campoClave">Escribe la clave que te llegó con tu compra</label>
+      <div class="clave-fila">
+        <input id="campoClave" type="text" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="claveAviso">
+        <button type="submit" id="btnClave">Abrir</button>
+      </div>
+      <p id="claveAviso" class="clave-aviso" role="status">Las mayúsculas, los acentos y los espacios no importan.</p>
+    </form>
+
+    <section id="saludo" class="saludo" hidden tabindex="-1">
+      <h2 id="saludoTitulo"></h2>
+      <p id="saludoTexto"></p>
+    </section>
+
+    <div id="estantes"></div>
+
+    <p id="salirFila" class="salir" hidden><button type="button" id="btnSalir">Salir en este celular</button></p>
+    <p class="legal">Este material es informativo y no sustituye a tu médico ni a tu nutrióloga.</p>
+  </main>
+</div>
+
+<div id="leitor" class="leitor" role="dialog" aria-modal="true" aria-labelledby="leitorTitulo" hidden>
+  <header class="leitor-barra">
+    <button type="button" id="leitorVolver" class="icono" aria-label="Volver a mis materiales"><svg width="24" height="24"><use href="#i-atras"/></svg></button>
+    <div class="leitor-nome">
+      <strong id="leitorTitulo"></strong>
+      <span id="leitorPagina" aria-live="off"></span>
+    </div>
+    <a id="leitorBajar" class="icono" aria-label="Descargar este PDF"><svg width="24" height="24"><use href="#i-bajar"/></svg></a>
+  </header>
+  <div id="leitorArea" class="leitor-area" tabindex="0"></div>
+  <div id="leitorEstado" class="leitor-estado" role="status"></div>
+</div>
+
+<div id="aviso" class="aviso" role="status" aria-live="polite"></div>
+
+<script src="js/dados.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

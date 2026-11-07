@@ -1,0 +1,11 @@
+# Fica fora do site publicado (o GitHub Pages serve tudo que está no repositório)
+privado/
+ferramentas/
+.impeccable/
+PRODUCT.md
+DESIGN.md
+README.md
+__pycache__/
+*.pyc
+Thumbs.db
+*.bat
