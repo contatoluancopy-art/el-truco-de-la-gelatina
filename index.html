@@ -15,6 +15,7 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-candado" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-atras" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <clipPath id="vaso-clip" clipPathUnits="userSpaceOnUse"><path d="M5.2 3.2h13.6l-1.7 16.6a2 2 0 0 1-2 1.8H8.9a2 2 0 0 1-2-1.8L5.2 3.2Z"/></clipPath>
   <symbol id="i-bajar" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
@@ -40,6 +41,34 @@
     <section id="saludo" class="saludo" hidden tabindex="-1">
       <h2 id="saludoTitulo"></h2>
       <p id="saludoTexto"></p>
+    </section>
+
+    <section id="agua" class="agua" aria-labelledby="aguaTitulo" hidden>
+      <h2 id="aguaTitulo">Tu agua de hoy</h2>
+      <p class="agua-intro">Escribe tu peso y te digo cuánta agua tomar. La cuenta es simple: 1 litro por cada 20 kg.</p>
+      <div class="agua-peso">
+        <label for="aguaPeso">Mi peso en kilos</label>
+        <div class="agua-campo">
+          <input id="aguaPeso" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Por ejemplo, 68" aria-describedby="aguaMeta">
+          <span aria-hidden="true">kg</span>
+        </div>
+      </div>
+      <p id="aguaMeta" class="agua-meta" role="status"></p>
+      <div id="aguaSeguir" hidden>
+        <ul id="aguaVasos" class="vasos" aria-hidden="true"></ul>
+        <p id="aguaCuenta" class="agua-cuenta" role="status"></p>
+        <div class="agua-botones">
+          <button id="aguaMas" type="button" class="agua-mas">Tomé un vaso</button>
+          <button id="aguaMenos" type="button" class="agua-menos">Quitar uno</button>
+        </div>
+        <p id="aguaReparte" class="agua-reparte"></p>
+        <ul class="agua-trucos">
+          <li>Toma un vaso apenas te despiertas, antes de ver el celular.</li>
+          <li>Un vaso antes de cada comida y otro con cada gelatina.</li>
+          <li>Llena una botella de 1 litro y termínala antes de la comida. Después la rellenas.</li>
+        </ul>
+      </div>
+      <p class="agua-nota">Si tu médico te indicó otra cantidad, sigue la suya. Los tés e infusiones sin azúcar también cuentan.</p>
     </section>
 
     <div id="estantes"></div>

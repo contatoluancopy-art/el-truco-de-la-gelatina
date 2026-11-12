@@ -355,6 +355,87 @@
     return s;
   }
 
+
+  // ---- Tu agua de hoy: peso -> meta, contador de vasos. Todo queda en este celular.
+  const AGUA = $('agua');
+  const CHAVE_AGUA = 'gelatina.agua';
+  const TOPE_LITROS = 4;
+  const dia = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const estadoAgua = { peso: 0, dia: dia(), vasos: 0 };
+  try {
+    const e = JSON.parse(guardar.ler(CHAVE_AGUA) || '{}');
+    estadoAgua.peso = Number(e.peso) || 0;
+    if (e.dia === dia()) estadoAgua.vasos = Math.max(0, Math.floor(Number(e.vasos) || 0));
+  } catch { /* sin datos guardados: empieza de cero */ }
+  const guardarAgua = () => guardar.pôr(CHAVE_AGUA, JSON.stringify(estadoAgua));
+  const num = (n) => String(Number(n.toFixed(2)));
+
+  function metaAgua(peso) {
+    if (!(peso >= 30 && peso <= 250)) return null;
+    const bruto = peso / 20;
+    const vasos = Math.round(Math.min(bruto, TOPE_LITROS) * 4); // vasos de 250 ml
+    return { vasos, litros: vasos / 4, tope: bruto > TOPE_LITROS };
+  }
+
+  function pintarAgua() {
+    if (estadoAgua.dia !== dia()) { estadoAgua.dia = dia(); estadoAgua.vasos = 0; }
+    const meta = metaAgua(estadoAgua.peso);
+    const seguir = $('aguaSeguir');
+    seguir.hidden = !meta;
+    if (!meta) {
+      $('aguaMeta').textContent = estadoAgua.peso ? 'Escribe tu peso en kilos, entre 30 y 250. Por ejemplo: 68.' : '';
+      return;
+    }
+    estadoAgua.vasos = Math.min(estadoAgua.vasos, meta.vasos);
+    $('aguaMeta').innerHTML = `Tu meta de hoy: <strong>${num(meta.litros)} litros</strong>, que son <strong>${meta.vasos} vasos</strong> de 250 ml.` +
+      (meta.tope ? `<small>Por seguridad, el máximo que te propongo es ${TOPE_LITROS} litros al día.</small>` : '');
+    const lista = $('aguaVasos');
+    if (lista.children.length !== meta.vasos) {
+      lista.replaceChildren(...Array.from({ length: meta.vasos }, () => {
+        const li = document.createElement('li');
+        li.className = 'vaso';
+        li.innerHTML = '<svg viewBox="0 0 24 24" focusable="false"><path class="fundo" d="M5.2 3.2h13.6l-1.7 16.6a2 2 0 0 1-2 1.8H8.9a2 2 0 0 1-2-1.8L5.2 3.2Z"/><g clip-path="url(#vaso-clip)"><rect class="nivel" x="4" y="7" width="16" height="15"/></g><path class="borde" d="M5.2 3.2h13.6l-1.7 16.6a2 2 0 0 1-2 1.8H8.9a2 2 0 0 1-2-1.8L5.2 3.2Z"/></svg>';
+        return li;
+      }));
+    }
+    [...lista.children].forEach((li, i) => li.classList.toggle('lleno', i < estadoAgua.vasos));
+    const listo = estadoAgua.vasos >= meta.vasos;
+    const cuenta = $('aguaCuenta');
+    cuenta.textContent = listo ? '¡Meta de hoy cumplida! Así se hace.' : `Llevas ${estadoAgua.vasos} de ${meta.vasos} vasos.`;
+    cuenta.classList.toggle('listo', listo);
+    $('aguaMas').disabled = listo;
+    $('aguaMas').textContent = listo ? 'Listo por hoy' : 'Tomé un vaso';
+    $('aguaMenos').disabled = estadoAgua.vasos === 0;
+    // reparto del día: 40% en la mañana, 40% en la tarde, el resto en la noche
+    const manana = Math.round(meta.vasos * 0.4);
+    const tarde = Math.round(meta.vasos * 0.4);
+    $('aguaReparte').textContent = `Reparte tus vasos así: ${manana} en la mañana, ${tarde} en la tarde y ${meta.vasos - manana - tarde} en la noche.`;
+  }
+
+  function iniciarAgua() {
+    const campo = $('aguaPeso');
+    if (estadoAgua.peso) campo.value = String(estadoAgua.peso);
+    campo.addEventListener('input', () => {
+      const n = parseFloat(campo.value.replace(',', '.'));
+      estadoAgua.peso = Number.isFinite(n) ? n : 0;
+      guardarAgua();
+      pintarAgua();
+    });
+    campo.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); campo.blur(); } });
+    $('aguaMas').addEventListener('click', () => {
+      const meta = metaAgua(estadoAgua.peso);
+      if (!meta || estadoAgua.vasos >= meta.vasos) return;
+      estadoAgua.vasos += 1;
+      guardarAgua();
+      pintarAgua();
+      if (estadoAgua.vasos >= meta.vasos) avisar('¡Meta de agua cumplida hoy!');
+    });
+    $('aguaMenos').addEventListener('click', () => {
+      if (estadoAgua.vasos > 0) { estadoAgua.vasos -= 1; guardarAgua(); pintarAgua(); }
+    });
+  }
+  iniciarAgua();
+
   function desenhar(animar) {
     const caixa = $('estantes');
     caixa.replaceChildren();
@@ -372,6 +453,9 @@
       $('saludoTitulo').textContent = `Tu ${KIT[nivel]}: ${plural(meus.length, 'material', 'materiales')}`;
       $('saludoTexto').textContent = 'Toca una portada para abrirla. Tu secreto de cada día te llega por WhatsApp.';
       caixa.append(estante('Tus materiales', '', meus, 0));
+      AGUA.hidden = false;
+      caixa.append(AGUA);
+      pintarAgua();
       const vids = estanteVideos(acesso.videos);
       if (vids) caixa.append(vids);
       for (const n of [2, 3]) {

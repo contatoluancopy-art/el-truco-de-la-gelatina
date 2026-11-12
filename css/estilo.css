@@ -10,6 +10,8 @@
   --jamaica: #9f1150;
   --jamaica-osc: #7c0b3d;
   --mango: #f4b740;
+  --agua: #2b7a96;
+  --agua-claro: #d9ecf2;
   --linha: #e4d5c2;
   --cor-erro: #a11d1d;
   --saida: cubic-bezier(.16, 1, .3, 1);
@@ -193,3 +195,42 @@ a.icono:not([href]) { opacity: .35; pointer-events: none; }
 #leitor, .cine { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 #leitor canvas { pointer-events: none; }
 @media print { body * { display: none !important; } body::after { content: 'Este material se ve solo en la página.'; display: block; padding: 40px; font: 600 18px sans-serif; } }
+
+
+/* tu agua de hoy */
+.agua { margin: 8px 0 38px; max-width: 560px; }
+.agua h2 { font-size: 1.45rem; }
+.agua-intro { margin-top: 4px; font-size: .9375rem; color: var(--tinta-2); max-width: 46ch; }
+.agua-peso { margin-top: 14px; }
+.agua-peso label { display: block; font-weight: 600; margin-bottom: 8px; }
+.agua-campo { position: relative; max-width: 220px; }
+.agua-campo input { width: 100%; height: 52px; padding: 0 46px 0 14px; font-size: 16px; font-variant-numeric: tabular-nums; background: #fff; border: 1.5px solid var(--linha); border-radius: 10px; caret-color: var(--jamaica); transition: border-color .15s; }
+.agua-campo input::placeholder { color: #75625a; }
+.agua-campo input:focus { border-color: var(--jamaica); outline: none; }
+.agua-campo span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--tinta-2); pointer-events: none; }
+.agua-meta { margin-top: 14px; min-height: 1.5em; font-size: 1.125rem; line-height: 1.4; max-width: 34ch; }
+.agua-meta strong { white-space: nowrap; font-family: 'Bricolage', 'Figtree', sans-serif; font-weight: 800; color: var(--agua); letter-spacing: -.01em; }
+.agua-meta small { display: block; margin-top: 3px; font-size: .875rem; color: var(--tinta-2); }
+
+.vasos { display: flex; flex-wrap: wrap; gap: 6px 4px; margin: 18px 0 6px; padding: 0; list-style: none; }
+.vaso { flex: none; width: 34px; height: 38px; }
+.vaso svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.vaso .fundo { fill: var(--agua-claro); fill-opacity: .5; }
+.vaso .borde { fill: none; stroke: #8a766a; stroke-width: 1.4; stroke-linejoin: round; transition: stroke .3s; }
+.vaso .nivel { fill: var(--agua); transform: scaleY(0); transform-box: fill-box; transform-origin: 50% 100%; transition: transform .7s var(--saida); }
+.vaso.lleno .nivel { transform: scaleY(1); }
+.vaso.lleno .borde { stroke: var(--agua); }
+.agua-cuenta { font-weight: 600; font-variant-numeric: tabular-nums; }
+.agua-cuenta.listo { color: var(--agua); }
+.agua-botones { display: flex; align-items: center; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.agua-mas { min-width: 200px; height: 56px; padding: 0 24px; font-weight: 600; font-size: 1.0625rem; color: #fff; background: var(--agua); border: 0; border-radius: 12px; cursor: pointer; transition: background-color .15s, transform .12s var(--saida); }
+.agua-mas:active:not(:disabled) { transform: scale(.97); }
+.agua-mas:disabled { background: var(--agua-claro); color: #1f5368; cursor: default; }
+.agua-menos { min-height: 48px; padding: 0 14px; font-weight: 600; color: var(--tinta-2); background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.agua-menos:disabled { opacity: .45; cursor: default; }
+@media (hover: hover) { .agua-mas:hover:not(:disabled) { background: #1f6580; } .agua-menos:hover:not(:disabled) { color: var(--tinta); } }
+.agua-reparte { margin-top: 14px; font-size: .9375rem; font-variant-numeric: tabular-nums; }
+.agua-trucos { margin: 10px 0 0; padding-left: 1.15em; font-size: .9375rem; color: var(--tinta-2); max-width: 52ch; }
+.agua-trucos li { margin-top: 4px; }
+.agua-nota { margin-top: 14px; font-size: .8125rem; color: var(--tinta-2); max-width: 52ch; }
+@media (prefers-reduced-motion: reduce) { .vaso .nivel, .agua-mas, .vaso .borde { transition: none; } }
