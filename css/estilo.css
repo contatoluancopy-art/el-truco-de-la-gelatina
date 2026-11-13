@@ -134,6 +134,20 @@ a.icono:not([href]) { opacity: .35; pointer-events: none; }
 @media (min-width: 760px) { .videos { grid-auto-columns: 240px; } }
 @media (prefers-reduced-motion: reduce) { .video-tela img, .video-play { transition: none; } }
 
+/* vitrine dos vídeos bloqueados, logo abaixo do Kit Completo nos planos */
+.vitrine { margin-top: -6px; padding: 18px 16px 16px; background: #fff; border: 1px solid var(--linha); border-radius: 14px; }
+.vitrine .videos { margin: 0 -16px; padding: 0 16px 6px; scroll-padding: 0 16px; }
+.vitrine-titulo { font-size: 1.1875rem; line-height: 1.25; color: var(--jamaica); text-wrap: balance; }
+.vitrine-temas { list-style: none; padding: 0; margin: 12px 0 4px; display: grid; gap: 8px; max-width: 60ch; }
+.vitrine-temas li { position: relative; padding-left: 18px; font-size: .9375rem; line-height: 1.4; color: var(--tinta-2); }
+.vitrine-temas li::before { content: ""; position: absolute; left: 2px; top: .55em; width: 7px; height: 7px; border-radius: 50%; background: var(--mango); box-shadow: 0 0 0 2px rgba(244,183,64,.25); }
+.vitrine-temas b { color: var(--tinta); font-weight: 600; }
+.video.fechado .video-tela img { filter: saturate(.85); }
+.video.fechado .video-tela::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(30,15,8,.35), transparent 55%); }
+.video.fechado .video-dur { right: auto; left: 7px; z-index: 2; }
+.video.fechado .selo-candado { z-index: 3; }
+@media (hover: hover) { .video.fechado:hover .video-tela img { transform: none; } }
+
 /* cine: o player do YouTube por baixo de um véu; ela só tem tocar e pausar e tela cheia (mesmo esquema do curso de sabonete) */
 .cine { position: fixed; inset: 0; z-index: 25; display: flex; flex-direction: column; background: #120c09; animation: subir .34s var(--saida); }
 .cine[hidden] { display: none; }

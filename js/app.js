@@ -330,6 +330,73 @@
     else if (e.key === ' ' && e.target === document.body) { e.preventDefault(); tela.querySelector('.tela-centro').click(); }
   });
 
+  /* ---------- vitrine bloqueada: os vídeos aparecem nos planos antes do pagamento, com prévia borrada.
+     Sem ID do YouTube aqui fora; o vídeo de verdade só sai do cofre do Kit Completo. ---------- */
+  const TEMAS_VIDEOS = [
+    ['Tu postre de la tarde, sin culpa', 'flan sin horno, pay de limón en vaso, fresas con crema y cómo hacerlos sin azúcar.'],
+    ['Aguas frescas para tu meta de agua', 'pepino con limón, jamaica, sandía con hierbabuena, melón.'],
+    ['Comida ligera que le gusta a toda tu familia', 'caldito tlalpeño, tinga de pollo, tacos de lechuga, lentejas.'],
+    ['Postres para vender desde tu casa', 'recetas fáciles y económicas para ganarte un dinerito extra.'],
+    ['Cortitos, para verlos en tu celular', 'mientras cocinas, con tu receta abierta al lado.'],
+  ];
+
+  function estanteVitrine(nivelVideos) {
+    const lista = D.vitrine || [];
+    if (!lista.length) return null;
+    const s = document.createElement('section');
+    s.className = 'estante estante-videos vitrine';
+    const cab = document.createElement('div');
+    cab.className = 'estante-cabeca';
+    const h = document.createElement('h3');
+    h.className = 'vitrine-titulo';
+    h.textContent = `Y ${plural(lista.length, 'videoclase', 'videoclases')} paso a paso, solo en el ${KIT[nivelVideos]}`;
+    const ul = document.createElement('ul');
+    ul.className = 'vitrine-temas';
+    for (const [t, d] of TEMAS_VIDEOS) {
+      const li = document.createElement('li');
+      const b = document.createElement('b');
+      b.textContent = t;
+      li.append(b, `: ${d}`);
+      ul.append(li);
+    }
+    cab.append(h, ul);
+    const fila = document.createElement('ul');
+    fila.className = 'videos';
+    for (const v of lista) {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'video fechado';
+      b.setAttribute('aria-label', `${v.tema}: viene en el ${KIT[nivelVideos]}`);
+      const tela = document.createElement('span');
+      tela.className = 'video-tela';
+      const img = document.createElement('img');
+      img.src = `img/previas-videos/${v.p}`;
+      img.alt = '';
+      img.loading = 'lazy';
+      img.width = 320; img.height = 180;
+      const selo = document.createElement('span');
+      selo.className = 'selo-candado';
+      selo.innerHTML = '<svg width="14" height="14" aria-hidden="true"><use href="#i-candado"/></svg>';
+      selo.append(KIT[nivelVideos].replace('Kit ', ''));
+      const dur = document.createElement('span');
+      dur.className = 'video-dur';
+      dur.textContent = minutos(v.min);
+      tela.append(img, dur, selo);
+      const nome = document.createElement('span');
+      nome.className = 'video-nome';
+      nome.textContent = v.tema;
+      b.append(tela, nome);
+      b.addEventListener('click', () => avisar(acesso
+        ? `Este video viene en el ${KIT[nivelVideos]}. Avísame por WhatsApp y te digo cómo completar tu aportación.`
+        : `Este video viene en el ${KIT[nivelVideos]}. Elige tu kit y haz tu pago para verlo aquí mismo.`));
+      li.append(b);
+      fila.append(li);
+    }
+    s.append(cab, fila);
+    return s;
+  }
+
   function estanteVideos(lista) {
     if (!lista || !lista.length) return null;
     const s = document.createElement('section');
@@ -834,6 +901,7 @@
         const faltan = de(n);
         const extraVid = qtdVideos(n) ? ` y ${plural(qtdVideos(n), 'video', 'videos')}` : '';
         caixa.append(estante(`Vienen en el ${KIT[n]}`, `${plural(faltan.length, 'material más', 'materiales más')}${extraVid}. Si los quieres, avísame por WhatsApp y te digo cómo completar tu aportación.`, faltan, 0));
+        if (n === 3) { const vit = estanteVitrine(3); if (vit) caixa.append(vit); }
       }
     } else {
       caixa.append(estante('Material prometido', 'Te entregué tu receta antes de tu pago, confiando en ti, como acordamos. Ahora falta tu parte: elige uno de los kits de abajo y haz tu pago para abrirlo.', D.catalogo.filter((m) => m.gratis), 0));
@@ -845,6 +913,8 @@
       caixa.append(estante(`${KIT[1]} · $119`, `Tu receta, estos 2 bonos${vid(1)} y un secreto al día por 30 días`, de(1).filter((m) => !m.gratis), 0));
       caixa.append(estante(`${KIT[2]} · $179`, `Todo el ${KIT[1]}, ${plural(de(2).length, 'material', 'materiales')} más${vid(2)}`, de(2), 0));
       caixa.append(estante(`${KIT[3]} · $239`, `Todo el ${KIT[2]}, ${plural(de(3).length, 'material', 'materiales')} más${vid(3)}`, de(3), 0));
+      const vit = estanteVitrine(3);
+      if (vit) caixa.append(vit);
     }
   }
 
